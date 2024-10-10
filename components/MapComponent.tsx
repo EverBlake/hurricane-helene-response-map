@@ -51,14 +51,6 @@ const center = {
   lng: -82.5515
 };
 
-const affectedTowns = [
-  { name: "Asheville", lat: 35.5951, lng: -82.5515 },
-  { name: "Hendersonville", lat: 35.3187, lng: -82.4612 },
-  { name: "Waynesville", lat: 35.4887, lng: -82.9887 },
-  { name: "Black Mountain", lat: 35.6179, lng: -82.3212 },
-  { name: "Brevard", lat: 35.2334, lng: -82.7343 }
-];
-
 const libraries: ("places")[] = ["places"];
 
 const MapComponent: React.FC<MapComponentProps> = ({ locations }) => {
@@ -225,16 +217,6 @@ const MapComponent: React.FC<MapComponentProps> = ({ locations }) => {
                   onMouseOver={() => handleMouseOver(location)}
                   onMouseOut={handleMouseOut}
                   onClick={() => setSelectedLocation(location)}
-                />
-              ))}
-              {affectedTowns.map((town, index) => (
-                <Marker
-                  key={`town-${index}`}
-                  position={{ lat: town.lat, lng: town.lng }}
-                  title={town.name}
-                  icon={{
-                    url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-                  }}
                 />
               ))}
             </GoogleMap>
