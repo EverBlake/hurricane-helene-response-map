@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, ErrorInfo } from 'react';
 import { GoogleMap, LoadScript, Marker, StandaloneSearchBox } from '@react-google-maps/api';
 
 interface Location {
@@ -16,6 +16,29 @@ interface Location {
 
 interface MapComponentProps {
   locations: Location[]
+}
+
+class ErrorBoundary extends React.Component<{children: React.ReactNode}, {hasError: boolean}> {
+  constructor(props: {children: React.ReactNode}) {
+    super(props)
+    this.state = { hasError: false }
+  }
+
+  static getDerivedStateFromError(_: Error) {
+    return { hasError: true }
+  }
+
+  componentDidCatch(error: Error, errorInfo: ErrorInfo) {
+    console.log('MapComponent error:', error, errorInfo)
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong with the map.</h1>
+    }
+
+    return this.props.children
+  }
 }
 
 const containerStyle = {
@@ -39,6 +62,8 @@ const affectedTowns = [
 const libraries: ("places")[] = ["places"];
 
 const MapComponent: React.FC<MapComponentProps> = ({ locations }) => {
+  console.log('MapComponent received locations:', locations)
+  
   const [mapError, setMapError] = useState<string | null>(null);
   const [hoveredLocation, setHoveredLocation] = useState<Location | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
@@ -152,88 +177,90 @@ const MapComponent: React.FC<MapComponentProps> = ({ locations }) => {
   }
 
   return (
-    <LoadScript
-      googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
-      libraries={libraries}
-      onError={handleLoadError}
-    >
-      {mapError ? (
-        <div>{mapError}</div>
-      ) : (
-        <>
-          <GoogleMap
-            mapContainerStyle={containerStyle}
-            center={center}
-            zoom={10}
-            onLoad={onLoad}
-          >
-            <StandaloneSearchBox
-              onLoad={onSearchBoxLoad}
-              onPlacesChanged={onPlacesChanged}
+    <ErrorBoundary>
+      <LoadScript
+        googleMapsApiKey={process.env.NEXT_PUBLIC_GOOGLE_MAPS_API_KEY}
+        libraries={libraries}
+        onError={handleLoadError}
+      >
+        {mapError ? (
+          <div>{mapError}</div>
+        ) : (
+          <>
+            <GoogleMap
+              mapContainerStyle={containerStyle}
+              center={center}
+              zoom={10}
+              onLoad={onLoad}
             >
-              <input
-                type="text"
-                placeholder="Search locations"
-                style={{
-                  boxSizing: `border-box`,
-                  border: `1px solid transparent`,
-                  width: `240px`,
-                  height: `32px`,
-                  padding: `0 12px`,
-                  borderRadius: `3px`,
-                  boxShadow: `0 2px 6px rgba(0, 0, 0, 0.3)`,
-                  fontSize: `14px`,
-                  outline: `none`,
-                  textOverflow: `ellipses`,
-                  position: "absolute",
-                  left: "50%",
-                  marginLeft: "-120px"
-                }}
-              />
-            </StandaloneSearchBox>
-            {locations.map((location, index) => (
-              <Marker
-                key={index}
-                position={{ lat: location.lat, lng: location.lon }}
-                title={location.name}
-                onMouseOver={() => handleMouseOver(location)}
-                onMouseOut={handleMouseOut}
-                onClick={() => setSelectedLocation(location)}
-              />
-            ))}
-            {affectedTowns.map((town, index) => (
-              <Marker
-                key={`town-${index}`}
-                position={{ lat: town.lat, lng: town.lng }}
-                title={town.name}
-                icon={{
-                  url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
-                }}
-              />
-            ))}
-          </GoogleMap>
-          {selectedLocation && (
-            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-              <div className="bg-white p-6 rounded-lg max-w-md w-full">
-                <h2 className="text-2xl font-bold mb-4">{selectedLocation.name}</h2>
-                <p><strong>Address:</strong> {selectedLocation.address}</p>
-                <p><strong>Organization:</strong> {selectedLocation.organization}</p>
-                <p><strong>Category:</strong> {selectedLocation.category}</p>
-                <p><strong>Description:</strong> {selectedLocation.description}</p>
-                <p><strong>Needs:</strong> {selectedLocation.needs}</p>
-                <p><strong>Providing:</strong> {selectedLocation.providing}</p>
-                <button
-                  onClick={() => setSelectedLocation(null)}
-                  className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
-                >
-                  Close
-                </button>
+              <StandaloneSearchBox
+                onLoad={onSearchBoxLoad}
+                onPlacesChanged={onPlacesChanged}
+              >
+                <input
+                  type="text"
+                  placeholder="Search locations"
+                  style={{
+                    boxSizing: `border-box`,
+                    border: `1px solid transparent`,
+                    width: `240px`,
+                    height: `32px`,
+                    padding: `0 12px`,
+                    borderRadius: `3px`,
+                    boxShadow: `0 2px 6px rgba(0, 0, 0, 0.3)`,
+                    fontSize: `14px`,
+                    outline: `none`,
+                    textOverflow: `ellipses`,
+                    position: "absolute",
+                    left: "50%",
+                    marginLeft: "-120px"
+                  }}
+                />
+              </StandaloneSearchBox>
+              {locations.map((location, index) => (
+                <Marker
+                  key={index}
+                  position={{ lat: location.lat, lng: location.lon }}
+                  title={location.name}
+                  onMouseOver={() => handleMouseOver(location)}
+                  onMouseOut={handleMouseOut}
+                  onClick={() => setSelectedLocation(location)}
+                />
+              ))}
+              {affectedTowns.map((town, index) => (
+                <Marker
+                  key={`town-${index}`}
+                  position={{ lat: town.lat, lng: town.lng }}
+                  title={town.name}
+                  icon={{
+                    url: 'http://maps.google.com/mapfiles/ms/icons/blue-dot.png'
+                  }}
+                />
+              ))}
+            </GoogleMap>
+            {selectedLocation && (
+              <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                <div className="bg-white p-6 rounded-lg max-w-md w-full">
+                  <h2 className="text-2xl font-bold mb-4">{selectedLocation.name}</h2>
+                  <p><strong>Address:</strong> {selectedLocation.address}</p>
+                  <p><strong>Organization:</strong> {selectedLocation.organization}</p>
+                  <p><strong>Category:</strong> {selectedLocation.category}</p>
+                  <p><strong>Description:</strong> {selectedLocation.description}</p>
+                  <p><strong>Needs:</strong> {selectedLocation.needs}</p>
+                  <p><strong>Providing:</strong> {selectedLocation.providing}</p>
+                  <button
+                    onClick={() => setSelectedLocation(null)}
+                    className="mt-4 bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+                  >
+                    Close
+                  </button>
+                </div>
               </div>
-            </div>
-          )}
-        </>
-      )}
-    </LoadScript>
+            )}
+          </>
+        )}
+      </LoadScript>
+    </ErrorBoundary>
   );
 };
 
