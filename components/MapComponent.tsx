@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef, useEffect, ErrorInfo } from 'react';
-import { GoogleMap, LoadScript, Marker, StandaloneSearchBox } from '@react-google-maps/api';
+import { GoogleMap, LoadScript, Marker } from '@react-google-maps/api';
 
 interface Location {
   id: number
@@ -60,7 +60,6 @@ const MapComponent: React.FC<MapComponentProps> = ({ locations }) => {
   const [hoveredLocation, setHoveredLocation] = useState<Location | null>(null);
   const [selectedLocation, setSelectedLocation] = useState<Location | null>(null);
   const [map, setMap] = useState<google.maps.Map | null>(null);
-  const [searchBox, setSearchBox] = useState<google.maps.places.SearchBox | null>(null);
   const overlayRef = useRef<google.maps.OverlayView | null>(null);
 
   const handleLoadError = (error: Error) => {
@@ -78,25 +77,6 @@ const MapComponent: React.FC<MapComponentProps> = ({ locations }) => {
 
   const onLoad = (mapInstance: google.maps.Map) => {
     setMap(mapInstance);
-  };
-
-  const onSearchBoxLoad = (searchBoxInstance: google.maps.places.SearchBox) => {
-    setSearchBox(searchBoxInstance);
-  };
-
-  const onPlacesChanged = () => {
-    if (searchBox && map) {
-      const places = searchBox.getPlaces();
-      if (places && places.length > 0) {
-        const bounds = new google.maps.LatLngBounds();
-        places.forEach(place => {
-          if (place.geometry && place.geometry.location) {
-            bounds.extend(place.geometry.location);
-          }
-        });
-        map.fitBounds(bounds);
-      }
-    }
   };
 
   useEffect(() => {
@@ -185,30 +165,6 @@ const MapComponent: React.FC<MapComponentProps> = ({ locations }) => {
               zoom={10}
               onLoad={onLoad}
             >
-              <StandaloneSearchBox
-                onLoad={onSearchBoxLoad}
-                onPlacesChanged={onPlacesChanged}
-              >
-                <input
-                  type="text"
-                  placeholder="Search locations"
-                  style={{
-                    boxSizing: `border-box`,
-                    border: `1px solid transparent`,
-                    width: `240px`,
-                    height: `32px`,
-                    padding: `0 12px`,
-                    borderRadius: `3px`,
-                    boxShadow: `0 2px 6px rgba(0, 0, 0, 0.3)`,
-                    fontSize: `14px`,
-                    outline: `none`,
-                    textOverflow: `ellipses`,
-                    position: "absolute",
-                    left: "50%",
-                    marginLeft: "-120px"
-                  }}
-                />
-              </StandaloneSearchBox>
               {locations.map((location, index) => (
                 <Marker
                   key={index}
