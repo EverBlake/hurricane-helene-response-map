@@ -48,12 +48,16 @@ export default function Home() {
       autocompleteRef.current.addListener('place_changed', () => {
         const place = autocompleteRef.current?.getPlace();
         if (place?.geometry?.location) {
+          const lat = place.geometry.location.lat();
+          const lng = place.geometry.location.lng();
           setNewLocation(prev => ({
             ...prev,
             address: place.formatted_address || '',
-            lat: place.geometry.location.lat(),
-            lon: place.geometry.location.lng()
+            lat: lat,
+            lon: lng
           }));
+        } else {
+          console.warn('Selected place does not have valid geometry');
         }
       });
     }
