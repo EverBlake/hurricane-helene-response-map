@@ -29,6 +29,8 @@ interface Location {
 export default function Home() {
   const [locations, setLocations] = useState<Location[]>([])
   const [isFormOpen, setIsFormOpen] = useState(false)
+  const [isLoading, setIsLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
   const session = useSession()
   const supabase = useSupabaseClient()
 
@@ -37,16 +39,34 @@ export default function Home() {
   }, [])
 
   async function fetchLocations() {
-    const { data, error } = await supabase
-      .from('relief_locations')
-      .select('*')
-    if (error) console.error('Error fetching locations:', error)
-    else setLocations(data || [])
+    setIsLoading(true)
+    setError(null)
+    try {
+      const { data, error } = await supabase
+        .from('relief_locations')
+        .select('*')
+      
+      if (error) throw error
+
+      console.log('Fetched locations:', data) // Log the fetched data
+      setLocations(data || [])
+    } catch (error) {
+      console.error('Error fetching locations:', error)
+      setError('Failed to fetch locations. Please try again later.')
+    } finally {
+      setIsLoading(false)
+    }
   }
 
   return (
     <div className="relative h-screen">
-      <MapComponent locations={locations} />
+      {isLoading ? (
+        <p>Loading locations...</p>
+      ) : error ? (
+        <p className="text-red-500">{error}</p>
+      ) : (
+        <MapComponent locations={locations} />
+      )}
       {session ? (
         <>
           <button
