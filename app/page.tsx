@@ -63,6 +63,8 @@ export default function Home() {
             supabaseClient={supabase}
             appearance={{ theme: ThemeSupa }}
             theme="dark"
+            providers={[]}
+            view="sign_in"
           />
         </div>
       )}
