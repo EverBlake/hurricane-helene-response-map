@@ -19,6 +19,14 @@ const geistMono = localFont({
 export const metadata: Metadata = {
   title: "Hurricane Helene Response Map",
   description: "Interactive map for coordinating hurricane response efforts",
+  icons: {
+    icon: [
+      {
+        url: '/favicon.ico',
+        sizes: 'any',
+      },
+    ],
+  },
 };
 
 export default async function RootLayout({
@@ -31,6 +39,9 @@ export default async function RootLayout({
 
   return (
     <html lang="en">
+      <head>
+        <link rel="icon" href="/favicon.ico" sizes="any" />
+      </head>
       <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
         <SessionProvider session={session}>
           <div className="min-h-screen flex flex-col">
